@@ -7,8 +7,9 @@ import java.util.Scanner;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+// Utilização do Thread
 public class Server extends Thread {
-    public Socket cliente;
+    private Socket cliente;
 
     public Server(Socket cliente) {
         this.cliente = cliente;
