@@ -18,7 +18,7 @@ public class Server extends Thread {
     private String nickName;
     private BufferedReader leitor;
     private PrintWriter escritor;
-    private Map<String,Server> clientes = new HashMap<>();
+    private static final Map<String,Server> clientes = new HashMap<String, Server>();
 
     public Server(Socket cliente) {
         this.cliente = cliente;
@@ -66,18 +66,16 @@ public class Server extends Thread {
             escritor = new PrintWriter(cliente.getOutputStream(),true);
             escritor.println("Digite seu nome");
             String msg = leitor.readLine();
-            this.nickName = msg;
+            this.nickName = msg.toLowerCase().replaceAll(",","");
             escritor.println("ola " + this.nickName);
             clientes.put(this.nickName, this);
 
             while (true) {
                 msg = leitor.readLine();
                 if (msg.equalsIgnoreCase("Exit")){
-                    leitor.close();
-                    escritor.close();
                     this.cliente.close();
                 }else if (msg.toLowerCase().startsWith("::msg")){
-                    String nomeDestinatario =  msg.substring(msg.length());
+                    String nomeDestinatario =  msg.substring(5,msg.length());
                     System.out.println("Enviado para " + nomeDestinatario);
                     Server destinatario = clientes.get(nomeDestinatario);
                     if (destinatario == null){
@@ -86,8 +84,21 @@ public class Server extends Thread {
                         escritor.println("digite uma mensagem para " + destinatario.getNickName());
                         destinatario.getEscritor().println(this.nickName + " disse " + leitor.readLine());
                     }
+                    // Listar os nomes
+                }else if (msg.equalsIgnoreCase("::listar")) {
+                    StringBuffer str = new StringBuffer();
+                    for (String c : clientes.keySet()){
+                        str.append(c);
+                        str.append(",");
+                    }
+                    str.delete(str.length()-1,str.length());
+                    escritor.println(str.toString());
                 } else {
-                    escritor.println(this.nickName + " Voce disse: " + msg);
+                    for (String c : clientes.keySet()) {
+                        Server destinatario = clientes.get(c);
+                        destinatario.getEscritor().println(this.nickName+ " disse " + msg);
+                        //escritor.println(c + " Voce disse: " + msg);
+                    }
                 }
             }
 
