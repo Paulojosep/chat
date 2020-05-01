@@ -24,7 +24,6 @@ public class Client {
 
                     } catch (IOException e) {
                         System.err.println("Fechou a conexao");
-                        e.printStackTrace();
                         System.exit(0);
                     }
                 }

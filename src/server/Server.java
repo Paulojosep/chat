@@ -45,6 +45,7 @@ public class Server extends Thread {
         try {
             ServerSocket server = new ServerSocket(12345);
             System.out.println("Servidor iniciado na porta 12345");
+            System.out.println("/////Aguardando clientes...////////");
 
             while (true) {
                 Socket cliente = server.accept();
@@ -59,8 +60,6 @@ public class Server extends Thread {
 
     @Override
     public void run() {
-        System.out.println("Cliente conectado do IP " + cliente.getInetAddress().getHostAddress());
-
         try {
             //Scanner entrada = new Scanner(cliente.getInputStream());
             leitor = new BufferedReader(new InputStreamReader(cliente.getInputStream()));
@@ -75,7 +74,6 @@ public class Server extends Thread {
                     this.cliente.close();
                 } else if (msg.toLowerCase().startsWith("::msg")) {
                     String nomeDestinatario = msg.substring(5, msg.length());
-                    System.out.println("Enviado para " + nomeDestinatario);
                     Server destinatario = clientes.get(nomeDestinatario);
                     if (destinatario == null) {
                         escritor.println("Cliente nao existe");
@@ -87,23 +85,22 @@ public class Server extends Thread {
                     // Listar os nomes
                 } else if (msg.equalsIgnoreCase("::listar")) {
                     listaDeUsuarios();
+                }else if (msg.equalsIgnoreCase("::new")){
+                    alterarNome(msg);
                 } else {
                     for (String c : clientes.keySet()) {
                         Server destinatario = clientes.get(c);
                         destinatario.getEscritor().println(this.nickName + " disse " + msg);
-                        System.out.println(this.nickName + " enviou pra todos");
-                        //escritor.println(c + " Voce disse: " + msg);
+
                     }
+                    System.out.println(this.nickName + " enviou pra todos");
                 }
             }
-
-            //System.out.println("Cliente conectado do IP " + cliente.getInetAddress().getHostAddress() + " finalizou conexão");
-            //leitor.close();
-            //this.cliente.close();
         } catch (IOException ex) {
             Logger.getLogger(Server.class.getName()).log(Level.SEVERE, null, ex);
         } catch (Exception e) {
             System.out.println(this.nickName + " desconectou");
+            clientes.remove(this.nickName);
         }
     }
 
@@ -125,8 +122,9 @@ public class Server extends Thread {
             if (this.nickName.isEmpty()) {
                 escritor.println("Nome Fazio digite novamente!");
             } else if (clientes.containsKey(this.nickName)) {
-                escritor.println("Nome repetido digite novamente!");
-                System.exit(1);
+                System.out.println("Nome ja existe");
+                escritor.println("error nome ja existe digite novamente !");
+                msg = leitor.readLine();
             } else {
                 escritor.println("ola " + this.nickName);
                 clientes.put(this.nickName, this);
@@ -136,4 +134,13 @@ public class Server extends Thread {
         }
     }
 
+    private void alterarNome(String newName) throws IOException {
+        clientes.remove(this.nickName);
+        escritor.println("Digite o seu novo nome");
+        newName = leitor.readLine();
+        setNickName(newName);
+        escritor.println("Novo nome e :" + getNickName());
+        clientes.put(newName,this);
+        listaDeUsuarios();
+    }
 }
