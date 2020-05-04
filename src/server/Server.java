@@ -16,7 +16,7 @@ public class Server extends Thread {
     private String nickName;
     private BufferedReader leitor;
     private PrintWriter escritor;
-    private static final Map<String, Server> clientes = new HashMap<String, Server>();
+    private static final Map<String, Server> clientes = new HashMap<String, Server>(); // variavel que guarda toods os clintes logados no servidor
 
     public Server(Socket cliente) {
         this.cliente = cliente;
@@ -87,11 +87,12 @@ public class Server extends Thread {
         } catch (IOException ex) {
             Logger.getLogger(Server.class.getName()).log(Level.SEVERE, null, ex);
         } catch (Exception e) {
-            System.out.println(this.nickName + " desconectou");
-            clientes.remove(this.nickName);
+            System.out.println(this.nickName + " desconectou"); // cliente se desconectou
+            clientes.remove(this.nickName); // remove o clinte que se desconectou do servidor
         }
     }
 
+    // Lista de usuarios
     private void listaDeUsuarios() {
         StringBuffer str = new StringBuffer();
         for (String c : clientes.keySet()) {
@@ -104,14 +105,15 @@ public class Server extends Thread {
         System.out.println(this.nickName + " >> usuarios: " + str.toString());
     }
 
+    // metodo de fazer login
     private void efeturaLogin(String msg) throws IOException {
         while (true) {
             this.nickName = msg.toLowerCase().replaceAll(",", "");
-            if (this.nickName.isEmpty()) {
+            if (this.nickName.isEmpty()) {//verifica se o nome nao e vazio
                 escritor.println("Nome Fazio digite novamente!");
-            } else if (clientes.containsKey(this.nickName)) {
-                System.out.println("Nome ja existe");
-                escritor.println("Servidor disse: error nome ja existe! digite novamente");
+            } else if (clientes.containsKey(this.nickName)) {// verifica se o nome não são iguais aos outros clientes
+                System.out.println("Nome ja existe"); //eviar esta mennsagem pro servidor
+                escritor.println("Servidor disse: error nome ja existe! digite novamente"); //envia esta mennsagem pro cliente
                 msg = leitor.readLine();
             } else {
                 escritor.println("Servidor disse: ola " + this.nickName);
@@ -122,11 +124,12 @@ public class Server extends Thread {
         }
     }
 
+    // metodo de alterar o nick do cliente
     private void alterarNome() throws IOException {
         escritor.println("Digite o seu novo nome");
         String newName = leitor.readLine();
-            if (clientes.containsKey(newName)) {
-                escritor.println("nick já atribuído a outro cliente");
+            if (clientes.containsKey(newName)) { //verifica se o nome do nick for iguais ao dos outros, se for..
+                escritor.println("nick já atribuído a outro cliente");//envia esta menssagem pro cliente
             } else {
                 clientes.remove(this.nickName);
                 //newName = leitor.readLine();
@@ -137,10 +140,11 @@ public class Server extends Thread {
             }
     }
 
+    // Metodo enviar menssagem para 1 cliente (cliente -> cliente)
     private void sendMessage(String msg) throws IOException {
         String nomeDestinatario = msg.substring(5, msg.length());
         Server destinatario = clientes.get(nomeDestinatario);
-        if (destinatario == null) {
+        if (destinatario == null) { // Verifica se o usuario digitou for vazio
             escritor.println("Cliente nao existe");
         } else {
             escritor.println("digite uma mensagem para " + destinatario.getNickName());
