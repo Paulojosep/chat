@@ -1,9 +1,6 @@
 package server;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.PrintWriter;
+import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.rmi.server.ExportException;
@@ -70,23 +67,14 @@ public class Server extends Thread {
 
             while (true) {
                 msg = leitor.readLine();
-                if (msg.equalsIgnoreCase("Exit")) {
+                if (msg.equalsIgnoreCase("Exit")) { // Sair
                     this.cliente.close();
-                } else if (msg.toLowerCase().startsWith("::msg")) {
-                    String nomeDestinatario = msg.substring(5, msg.length());
-                    Server destinatario = clientes.get(nomeDestinatario);
-                    if (destinatario == null) {
-                        escritor.println("Cliente nao existe");
-                    } else {
-                        escritor.println("digite uma mensagem para " + destinatario.getNickName());
-                        destinatario.getEscritor().println(this.nickName + " disse " + leitor.readLine());
-                        System.out.println(this.nickName + " enviou para " + destinatario.getNickName());
-                    }
-                    // Listar os nomes
-                } else if (msg.equalsIgnoreCase("::listar")) {
+                } else if (msg.toLowerCase().startsWith("::msg")) { // Enviar menssagem para um cliente
+                    sendMessage(msg);
+                } else if (msg.equalsIgnoreCase("::listar")) { // Listar os nomes
                     listaDeUsuarios();
-                }else if (msg.equalsIgnoreCase("::new")){
-                    alterarNome(msg);
+                }else if (msg.equalsIgnoreCase("::new")){ // Alterar Nome
+                    alterarNome();
                 } else {
                     for (String c : clientes.keySet()) {
                         Server destinatario = clientes.get(c);
@@ -112,8 +100,8 @@ public class Server extends Thread {
         }
         if (str.length() > 0)
             str.delete(str.length() - 1, str.length());
-        escritor.println(" usuarios: " + str.toString());
-        System.out.println(" usuarios: " + str.toString());
+        escritor.println("usuarios: " + str.toString());
+        System.out.println(this.nickName + " >> usuarios: " + str.toString());
     }
 
     private void efeturaLogin(String msg) throws IOException {
@@ -123,10 +111,10 @@ public class Server extends Thread {
                 escritor.println("Nome Fazio digite novamente!");
             } else if (clientes.containsKey(this.nickName)) {
                 System.out.println("Nome ja existe");
-                escritor.println("error nome ja existe digite novamente !");
+                escritor.println("Servidor disse: error nome ja existe! digite novamente");
                 msg = leitor.readLine();
             } else {
-                escritor.println("ola " + this.nickName);
+                escritor.println("Servidor disse: ola " + this.nickName);
                 clientes.put(this.nickName, this);
                 System.out.println(nickName + " entrou no chat");
                 break;
@@ -134,13 +122,30 @@ public class Server extends Thread {
         }
     }
 
-    private void alterarNome(String newName) throws IOException {
-        clientes.remove(this.nickName);
+    private void alterarNome() throws IOException {
         escritor.println("Digite o seu novo nome");
-        newName = leitor.readLine();
-        setNickName(newName);
-        escritor.println("Novo nome e :" + getNickName());
-        clientes.put(newName,this);
-        listaDeUsuarios();
+        String newName = leitor.readLine();
+            if (clientes.containsKey(newName)) {
+                escritor.println("nick já atribuído a outro cliente");
+            } else {
+                clientes.remove(this.nickName);
+                //newName = leitor.readLine();
+                setNickName(newName);
+                escritor.println("Novo nome e: " + getNickName());
+                clientes.put(newName, this);
+                listaDeUsuarios();
+            }
+    }
+
+    private void sendMessage(String msg) throws IOException {
+        String nomeDestinatario = msg.substring(5, msg.length());
+        Server destinatario = clientes.get(nomeDestinatario);
+        if (destinatario == null) {
+            escritor.println("Cliente nao existe");
+        } else {
+            escritor.println("digite uma mensagem para " + destinatario.getNickName());
+            destinatario.getEscritor().println(this.nickName + " disse: " + leitor.readLine());
+            System.out.println(this.nickName + " enviou menssagem para " + destinatario.getNickName());
+        }
     }
 }

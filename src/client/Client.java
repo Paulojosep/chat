@@ -5,10 +5,10 @@ import java.net.Socket;
 import java.net.UnknownHostException;
 
 public class Client {
-
+    private static Socket client;
     public static void main(String[] args) {
         try {
-            Socket client = new Socket("127.0.0.1", 12345);
+            client = new Socket("127.0.0.1", 12345);
 
             // Lendo menssagem do servidor
             new Thread() {
@@ -19,7 +19,7 @@ public class Client {
                         while (true) {
 
                             String msg = leitor.readLine();
-                            System.out.println("O servidor disse: " +msg);
+                            System.out.println(msg);
                         }
 
                     } catch (IOException e) {
